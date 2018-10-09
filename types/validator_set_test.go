@@ -248,22 +248,28 @@ func TestProposerSelection3(t *testing.T) {
 }
 
 func TestProposerSelection4(t *testing.T) {
-	firstVal := newValidator([]byte("foo"), 100)
-	vset := NewValidatorSet([]*Validator{
-		firstVal,
-		newValidator([]byte("bar"), 200),
-		newValidator([]byte("baz"), 200),
-	})
+	powerSets := [][3]int64{{100, 200, 300}, {200, 300, 300}, {200, 400, 400}, {100, 300, 600}}
 
-	for i := 0; i < 10; i++ {
-		val := vset.GetProposer()
-		if val.Address.String() == firstVal.Address.String() {
-			//passed
-			return
+	for _, powerSet := range powerSets {
+		firstVal := newValidator([]byte("foo"), powerSet[0])
+		vset := NewValidatorSet([]*Validator{
+			firstVal,
+			newValidator([]byte("bar"), powerSet[1]),
+			newValidator([]byte("baz"), powerSet[2]),
+		})
+
+		found := false
+		for i := 0; i < 10; i++ {
+			val := vset.GetProposer()
+			if val.Address.String() == firstVal.Address.String() {
+				found = true
+			}
+			vset.IncrementAccum(1)
 		}
-		vset.IncrementAccum(1)
+		if !found {
+			t.Errorf("Expected every validator was chosen once or more. Set of power values: %v", powerSet)
+		}
 	}
-	t.Error("Expected every validator was chosen once or more")
 }
 
 func newValidator(address []byte, power int64) *Validator {
