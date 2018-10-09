@@ -247,6 +247,25 @@ func TestProposerSelection3(t *testing.T) {
 	}
 }
 
+func TestProposerSelection4(t *testing.T) {
+	firstVal := newValidator([]byte("foo"), 100)
+	vset := NewValidatorSet([]*Validator{
+		firstVal,
+		newValidator([]byte("bar"), 200),
+		newValidator([]byte("baz"), 200),
+	})
+
+	for i := 0; i < 10; i++ {
+		val := vset.GetProposer()
+		if val.Address.String() == firstVal.Address.String() {
+			//passed
+			return
+		}
+		vset.IncrementAccum(1)
+	}
+	t.Error("Expected every validator was chosen once or more")
+}
+
 func newValidator(address []byte, power int64) *Validator {
 	return &Validator{Address: address, VotingPower: power}
 }
