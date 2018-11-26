@@ -8,7 +8,7 @@
 proxy_app = "tcp://127.0.0.1:26658"
 
 # A custom human readable name for this node
-moniker = "b4910adb3f87"
+moniker = "53038a2d574d"
 
 # If this node is many blocks behind the tip of the chain, FastSync
 # allows them to catchup quickly by downloading blocks in parallel
@@ -179,13 +179,13 @@ cache_size = 500000
 
 wal_file = "data/cs.wal/wal"
 
-timeout_propose = "3s"
+timeout_propose = "1s"
 timeout_propose_delta = "500ms"
-timeout_prevote = "250ms"
+timeout_prevote = "150ms"
 timeout_prevote_delta = "500ms"
-timeout_precommit = "250ms"
+timeout_precommit = "150ms"
 timeout_precommit_delta = "500ms"
-timeout_commit = "500ms"
+timeout_commit = "150ms"
 
 # Make progress as soon as we have all the precommits (as if TimeoutCommit = 0)
 skip_timeout_commit = true
@@ -196,7 +196,7 @@ create_empty_blocks_interval = "0s"
 
 # Reactor sleep duration parameters
 peer_gossip_sleep_duration = "50ms"
-peer_query_maj23_sleep_duration = "500ms"
+peer_query_maj23_sleep_duration = "250ms"
 
 ##### transactions indexer configuration options #####
 [tx_index]
@@ -206,7 +206,7 @@ peer_query_maj23_sleep_duration = "500ms"
 # Options:
 #   1) "null" (default)
 #   2) "kv" - the simplest possible indexer, backed by key-value storage (defaults to levelDB; see DBBackend).
-indexer = "kv"
+indexer = "null"
 
 # Comma-separated list of tags to index (by default the only tag is "tx.hash")
 #
