@@ -3,6 +3,7 @@ package mempool
 import (
 	"fmt"
 	"reflect"
+	"sync"
 	"time"
 
 	amino "github.com/tendermint/go-amino"
@@ -20,13 +21,24 @@ const (
 
 	maxMsgSize                 = 1048576 // 1MB TODO make it configurable
 	peerCatchupSleepIntervalMS = 100     // If peer is behind, sleep this amount
+
+	// UnknownPeerID is the peer ID to use when running CheckTx when there is
+	// no peer (e.g. RPC)
+	UnknownPeerID uint16 = 0
 )
 
 // MempoolReactor handles mempool tx broadcasting amongst peers.
+// It maintains a map from peer ID to counter, to prevent gossiping txs to the
+// peers you received it from.
 type MempoolReactor struct {
 	p2p.BaseReactor
 	config  *cfg.MempoolConfig
 	Mempool *Mempool
+
+	idMtx     sync.RWMutex
+	nextID    uint16 // assumes that a node will never have over 65536 active peers
+	peerMap   map[p2p.ID]uint16
+	activeIDs map[uint16]bool // used to check if a given peerID key is used, the value doesn't matter
 }
 
 // NewMempoolReactor returns a new MempoolReactor with the given config and mempool.
@@ -34,6 +46,10 @@ func NewMempoolReactor(config *cfg.MempoolConfig, mempool *Mempool) *MempoolReac
 	memR := &MempoolReactor{
 		config:  config,
 		Mempool: mempool,
+
+		peerMap:   make(map[p2p.ID]uint16),
+		activeIDs: map[uint16]bool{0: true},
+		nextID:    1, // reserve unknownPeerID(0) for mempoolReactor.BroadcastTx
 	}
 	memR.BaseReactor = *p2p.NewBaseReactor("MempoolReactor", memR)
 	return memR
@@ -64,14 +80,36 @@ func (memR *MempoolReactor) GetChannels() []*p2p.ChannelDescriptor {
 	}
 }
 
+// nextPeerID returns the next peer ID to use.
+// This assumes that memR's idMtx is already locked
+func (memR *MempoolReactor) nextPeerID() uint16 {
+	idExists := memR.activeIDs[memR.nextID]
+	for idExists {
+		memR.nextID++
+		_, idExists = memR.activeIDs[memR.nextID]
+	}
+	return memR.nextID
+}
+
 // AddPeer implements Reactor.
 // It starts a broadcast routine ensuring all txs are forwarded to the given peer.
 func (memR *MempoolReactor) AddPeer(peer p2p.Peer) {
+	memR.idMtx.Lock()
+	curID := memR.nextPeerID()
+	memR.peerMap[peer.ID()] = curID
+	memR.activeIDs[curID] = true
+	memR.nextID++
+	memR.idMtx.Unlock()
 	go memR.broadcastTxRoutine(peer)
 }
 
 // RemovePeer implements Reactor.
 func (memR *MempoolReactor) RemovePeer(peer p2p.Peer, reason interface{}) {
+	memR.idMtx.Lock()
+	removedID := memR.peerMap[peer.ID()]
+	delete(memR.peerMap, peer.ID())
+	delete(memR.activeIDs, removedID)
+	memR.idMtx.Unlock()
 	// broadcast routine checks if peer is gone and returns
 }
 
@@ -88,7 +126,10 @@ func (memR *MempoolReactor) Receive(chID byte, src p2p.Peer, msgBytes []byte) {
 
 	switch msg := msg.(type) {
 	case *TxMessage:
-		err := memR.Mempool.CheckTx(msg.Tx, nil)
+		memR.idMtx.RLock()
+		peerID := memR.peerMap[src.ID()]
+		memR.idMtx.RUnlock()
+		err := memR.Mempool.CheckTxWithInfo(msg.Tx, nil, TxInfo{peerID})
 		if err != nil {
 			memR.Logger.Info("Could not check tx", "tx", TxID(msg.Tx), "err", err)
 		}
@@ -114,6 +155,9 @@ func (memR *MempoolReactor) broadcastTxRoutine(peer p2p.Peer) {
 		return
 	}
 
+	memR.idMtx.RLock()
+	peerID := memR.peerMap[peer.ID()]
+	memR.idMtx.RUnlock()
 	var next *clist.CElement
 	for {
 		// This happens because the CElement we were looking at got garbage
@@ -149,13 +193,23 @@ func (memR *MempoolReactor) broadcastTxRoutine(peer p2p.Peer) {
 			time.Sleep(peerCatchupSleepIntervalMS * time.Millisecond)
 			continue
 		}
+		// ensure peer hasn't already sent us this tx
+		skip := false
+		for i := 0; i < len(memTx.senders); i++ {
+			if peerID == memTx.senders[i] {
+				skip = true
+				break
+			}
+		}
 
-		// send memTx
-		msg := &TxMessage{Tx: memTx.tx}
-		success := peer.Send(MempoolChannel, cdc.MustMarshalBinaryBare(msg))
-		if !success {
-			time.Sleep(peerCatchupSleepIntervalMS * time.Millisecond)
-			continue
+		if !skip {
+			// send memTx
+			msg := &TxMessage{Tx: memTx.tx}
+			success := peer.Send(MempoolChannel, cdc.MustMarshalBinaryBare(msg))
+			if !success {
+				time.Sleep(peerCatchupSleepIntervalMS * time.Millisecond)
+				continue
+			}
 		}
 
 		select {

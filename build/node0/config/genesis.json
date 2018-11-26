@@ -1,39 +1,39 @@
 {
-  "genesis_time": "2018-11-26T08:55:17.545347532Z",
-  "chain_id": "chain-SEeGiY",
+  "genesis_time": "2018-11-26T15:20:32.571762697Z",
+  "chain_id": "chain-0MMo8o",
   "validators": [
     {
-      "address": "E5FD1668A11DB2D7F6878DF956C11CCDD4A31022",
+      "address": "BAAB5707B53DE1A0A5AFC0358B388318995EB4AC",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "Du2lrJ1pKnE1li6fnRcZKRNtCN+X8qy2PaTb75SMzJs="
+        "value": "JrOwWAj7xiHFsWRXRfhbVWMNo+Xua6gniWwPVzlFhPs="
       },
       "power": "1",
       "name": "node0"
     },
     {
-      "address": "5DA83AE57A99F079022C15924DA281F9342D7844",
+      "address": "13CF0D6B2900AE439CA82EE9DFA6A94FA177F161",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "o8cRPszcLE+yyuF2ygZL64mNTuFAKN7sViwKZTnq+iM="
+        "value": "n9GFCaY0AmTNEpmH7An+slwJbfNc6PSms4TdJskBCpI="
       },
       "power": "1",
       "name": "node1"
     },
     {
-      "address": "320B1C1F3264AE459FBC206B133493D547AFC7E9",
+      "address": "16552CA20798119853CF9A20F97140A2C7415A2B",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "5nypaG2Tq++wR04kv3pUfim9tnxxCOUvtHrSyBYgCJ0="
+        "value": "tXETN/aEx0KVw0X4UHu1qR7i/xOUKN60LvPxIbmmHEw="
       },
       "power": "1",
       "name": "node2"
     },
     {
-      "address": "FC8313D746A096B8F9C5A95866F888DA10BFD1EA",
+      "address": "482E60D8BDA3C7CABCD81820FF458D252AEF7D11",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "qOpR8Bin8PYuJWx7jvtK9djz5zp/8JyxkLhl4SwbTl0="
+        "value": "lo+7NKaG6jV4O+BofF7Ew2SVITGSrJAbWQwa/F3iL+w="
       },
       "power": "1",
       "name": "node3"

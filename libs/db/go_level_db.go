@@ -3,6 +3,7 @@ package db
 import (
 	"bytes"
 	"fmt"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"path/filepath"
 
 	"github.com/syndtr/goleveldb/leveldb"
@@ -33,7 +34,23 @@ func NewGoLevelDB(name string, dir string) (*GoLevelDB, error) {
 
 func NewGoLevelDBWithOpts(name string, dir string, o *opt.Options) (*GoLevelDB, error) {
 	dbPath := filepath.Join(dir, name+".db")
-	db, err := leveldb.OpenFile(dbPath, o)
+
+	// Ensure we have some minimal caching and file guarantees
+	cache := 8096
+	handles := 1024
+
+	// Open the db and recover any potential corruptions
+	db, err := leveldb.OpenFile(dbPath, &opt.Options{
+		OpenFilesCacheCapacity: handles,
+		BlockCacheCapacity:     cache / 2 * opt.MiB,
+		WriteBuffer:            cache / 4 * opt.MiB, // Two of these are used internally
+		Filter:                 filter.NewBloomFilter(10),
+
+		BlockSize:                   16,
+		CompactionExpandLimitFactor: 70,
+		CompactionGPOverlapsFactor:  30,
+	})
+
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,7 @@
 proxy_app = "tcp://127.0.0.1:26658"
 
 # A custom human readable name for this node
-moniker = "53038a2d574d"
+moniker = "93dd53ae6a4e"
 
 # If this node is many blocks behind the tip of the chain, FastSync
 # allows them to catchup quickly by downloading blocks in parallel
@@ -180,11 +180,11 @@ cache_size = 500000
 wal_file = "data/cs.wal/wal"
 
 timeout_propose = "1s"
-timeout_propose_delta = "500ms"
+timeout_propose_delta = "250ms"
 timeout_prevote = "150ms"
-timeout_prevote_delta = "500ms"
+timeout_prevote_delta = "250ms"
 timeout_precommit = "150ms"
-timeout_precommit_delta = "500ms"
+timeout_precommit_delta = "250ms"
 timeout_commit = "150ms"
 
 # Make progress as soon as we have all the precommits (as if TimeoutCommit = 0)
@@ -195,7 +195,7 @@ create_empty_blocks = true
 create_empty_blocks_interval = "0s"
 
 # Reactor sleep duration parameters
-peer_gossip_sleep_duration = "50ms"
+peer_gossip_sleep_duration = "150ms"
 peer_query_maj23_sleep_duration = "250ms"
 
 ##### transactions indexer configuration options #####

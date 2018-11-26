@@ -9,6 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/tendermint/tendermint/abci/client"
+
 	"github.com/pkg/errors"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -30,6 +32,12 @@ type PreCheckFunc func(types.Tx) error
 // transaction if false is returned. An example would be to ensure a
 // transaction doesn't require more gas than available for the block.
 type PostCheckFunc func(types.Tx, *abci.ResponseCheckTx) error
+
+// TxInfo are parameters that get passed when attempting to add
+// a tx to the mempool
+type TxInfo struct {
+	PeerID uint16
+}
 
 /*
 
@@ -180,7 +188,7 @@ func NewMempool(
 	} else {
 		mempool.cache = nopTxCache{}
 	}
-	proxyAppConn.SetResponseCallback(mempool.resCb)
+	proxyAppConn.SetResponseCallback(mempool.resCb(UnknownPeerID))
 	for _, option := range options {
 		option(mempool)
 	}
@@ -299,6 +307,10 @@ func (mem *Mempool) TxsWaitChan() <-chan struct{} {
 //     It gets called from another goroutine.
 // CONTRACT: Either cb will get called, or err returned.
 func (mem *Mempool) CheckTx(tx types.Tx, cb func(*abci.Response)) (err error) {
+	return mem.CheckTxWithInfo(tx, cb, TxInfo{UnknownPeerID})
+}
+
+func (mem *Mempool) CheckTxWithInfo(tx types.Tx, cb func(*abci.Response), txInfo TxInfo) (err error) {
 	mem.proxyMtx.Lock()
 	// use defer to unlock mutex because application (*local client*) might panic
 	defer mem.proxyMtx.Unlock()
@@ -314,7 +326,7 @@ func (mem *Mempool) CheckTx(tx types.Tx, cb func(*abci.Response)) (err error) {
 	}
 
 	// CACHE
-	if !mem.cache.Push(tx) {
+	if !mem.cache.PushTxWithInfo(tx, txInfo) {
 		return ErrTxInCache
 	}
 	// END CACHE
@@ -337,6 +349,7 @@ func (mem *Mempool) CheckTx(tx types.Tx, cb func(*abci.Response)) (err error) {
 	if err = mem.proxyAppConn.Error(); err != nil {
 		return err
 	}
+	mem.proxyAppConn.SetResponseCallback(mem.resCb(txInfo.PeerID))
 	reqRes := mem.proxyAppConn.CheckTxAsync(tx)
 	if cb != nil {
 		reqRes.SetCallback(cb)
@@ -346,17 +359,19 @@ func (mem *Mempool) CheckTx(tx types.Tx, cb func(*abci.Response)) (err error) {
 }
 
 // ABCI callback function
-func (mem *Mempool) resCb(req *abci.Request, res *abci.Response) {
-	if mem.recheckCursor == nil {
-		mem.resCbNormal(req, res)
-	} else {
-		mem.metrics.RecheckTimes.Add(1)
-		mem.resCbRecheck(req, res)
+func (mem *Mempool) resCb(peerID uint16) abcicli.Callback {
+	return func(req *abci.Request, res *abci.Response) {
+		if mem.recheckCursor == nil {
+			mem.resCbNormal(req, res, peerID)
+		} else {
+			mem.metrics.RecheckTimes.Add(1)
+			mem.resCbRecheck(req, res)
+		}
+		mem.metrics.Size.Set(float64(mem.Size()))
 	}
-	mem.metrics.Size.Set(float64(mem.Size()))
 }
 
-func (mem *Mempool) resCbNormal(req *abci.Request, res *abci.Response) {
+func (mem *Mempool) resCbNormal(req *abci.Request, res *abci.Response, peerID uint16) {
 	switch r := res.Value.(type) {
 	case *abci.Response_CheckTx:
 		tx := req.GetCheckTx().Tx
@@ -370,6 +385,7 @@ func (mem *Mempool) resCbNormal(req *abci.Request, res *abci.Response) {
 				counter:   mem.counter,
 				height:    mem.height,
 				gasWanted: r.CheckTx.GasWanted,
+				senders:   []uint16{peerID},
 				tx:        tx,
 			}
 			mem.txs.PushBack(memTx)
@@ -611,6 +627,7 @@ type mempoolTx struct {
 	counter   int64    // a simple incrementing counter
 	height    int64    // height that this tx had been validated in
 	gasWanted int64    // amount of gas this tx states it will require
+	senders   []uint16 // ids of peers who've sent us this tx
 	tx        types.Tx //
 }
 
@@ -623,7 +640,7 @@ func (memTx *mempoolTx) Height() int64 {
 
 type txCache interface {
 	Reset()
-	Push(tx types.Tx) bool
+	PushTxWithInfo(tx types.Tx, txInfo TxInfo) bool
 	Remove(tx types.Tx)
 }
 
@@ -655,9 +672,9 @@ func (cache *mapTxCache) Reset() {
 	cache.mtx.Unlock()
 }
 
-// Push adds the given tx to the cache and returns true. It returns false if tx
+// PushTxWithInfo adds the given tx to the cache and returns true. It returns false if tx
 // is already in the cache.
-func (cache *mapTxCache) Push(tx types.Tx) bool {
+func (cache *mapTxCache) PushTxWithInfo(tx types.Tx, txInfo TxInfo) bool {
 	cache.mtx.Lock()
 	defer cache.mtx.Unlock()
 
@@ -665,7 +682,20 @@ func (cache *mapTxCache) Push(tx types.Tx) bool {
 	txHash := sha256.Sum256(tx)
 	if moved, exists := cache.map_[txHash]; exists {
 		cache.list.MoveToFront(moved)
-		return false
+		memTx, succ := moved.Value.(*mempoolTx)
+		// succ would be false if tx was reaped
+		if !succ {
+			return false
+		}
+		for i := 0; i < len(memTx.senders); i++ {
+			if txInfo.PeerID == memTx.senders[i] {
+				// TODO: consider punishing peer for dups,
+				// its non-trivial since invalid txs can become valid,
+				// but they can spam the same tx with little cost to them atm.
+				return false
+			}
+		}
+		memTx.senders = append(memTx.senders, txInfo.PeerID)
 	}
 
 	if cache.list.Len() >= cache.size {
@@ -698,6 +728,6 @@ type nopTxCache struct{}
 
 var _ txCache = (*nopTxCache)(nil)
 
-func (nopTxCache) Reset()             {}
-func (nopTxCache) Push(types.Tx) bool { return true }
-func (nopTxCache) Remove(types.Tx)    {}
+func (nopTxCache) Reset()                               {}
+func (nopTxCache) PushTxWithInfo(types.Tx, TxInfo) bool { return true }
+func (nopTxCache) Remove(types.Tx)                      {}

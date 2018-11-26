@@ -736,6 +736,10 @@ func (cs *ConsensusState) handleTxsAvailable() {
 func (cs *ConsensusState) enterNewRound(height int64, round int) {
 	logger := cs.Logger.With("height", height, "round", round)
 
+	if round > 0 {
+		logger.Error(fmt.Sprintf("Height %v \t Round %v", height, round))
+	}
+
 	if cs.Height != height || round < cs.Round || (cs.Round == round && cs.Step != cstypes.RoundStepNewHeight) {
 		logger.Debug(fmt.Sprintf("enterNewRound(%v/%v): Invalid args. Current step: %v/%v/%v", height, round, cs.Height, cs.Round, cs.Step))
 		return
