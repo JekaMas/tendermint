@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"strconv"
+	"sync/atomic"
 	"time"
 
 	"github.com/json-iterator/go"
@@ -14,9 +15,11 @@ const (
 	UnconfirmedTXsNum = "http://localhost:26657/num_unconfirmed_txs"
 	PostTx            = "http://localhost:26657/broadcast_tx_async?tx="
 	NRequests         = 20000
+
+	logStep = 1000
 )
 
-var NChunks = 5*runtime.NumCPU()
+var NChunks = 5 * runtime.NumCPU()
 
 func main() {
 	for i := 0; i < NRequests; i++ {
@@ -25,6 +28,8 @@ func main() {
 
 	chunks, chunkSize := getChunks()
 	startTime := time.Now()
+	done := new(uint32)
+
 	for n := 0; n < chunks; n++ {
 		from := n * chunkSize
 
@@ -32,7 +37,8 @@ func main() {
 		if to > NRequests {
 			to = NRequests
 		}
-		go postTxs(from, to)
+
+		go postTxs(from, to, done)
 	}
 
 	time.Sleep(50 * time.Millisecond)
@@ -57,10 +63,15 @@ func getChunks() (int, int) {
 	return chunks, chunkSize
 }
 
-func postTxs(from, to int) {
+func postTxs(from, to int, done *uint32) {
 	fmt.Println("tx from", from, "to", to-1)
 	for i := from; i < to; i++ {
 		postTx(i)
+		done := atomic.AddUint32(done, 1)
+
+		if done%logStep == 0 {
+			fmt.Println("Already done", done)
+		}
 	}
 }
 
@@ -99,13 +110,13 @@ func doRequest(url string, withBody bool) []byte {
 
 type RPCResponse struct {
 	Jsonrpc string `json:"jsonrpc"`
-	ID string `json:"id"`
-	Res Result `json:"result"`
+	ID      string `json:"id"`
+	Res     Result `json:"result"`
 }
 
 type Result struct {
-	N string `json:"n_txs"`
-	Txs *uint `json:"txs"`
+	N   string `json:"n_txs"`
+	Txs *uint  `json:"txs"`
 }
 
 func (r *RPCResponse) Decode(input []byte) {
