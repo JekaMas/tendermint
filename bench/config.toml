@@ -196,7 +196,7 @@ create_empty_blocks_interval = "0s"
 
 # Reactor sleep duration parameters
 peer_gossip_sleep_duration = "100ms"
-peer_query_maj23_sleep_duration = "2s"
+peer_query_maj23_sleep_duration = "1s"
 
 ##### transactions indexer configuration options #####
 [tx_index]
