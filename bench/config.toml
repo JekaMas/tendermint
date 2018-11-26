@@ -15,7 +15,7 @@ moniker = "5b5db27a6fe6"
 # and verifying their commits
 fast_sync = true
 
-# Database backend: leveldb | memdb | cleveldb
+# Database backend: leveldb | cleveldb | goleveldb | memdb
 db_backend = "leveldb"
 
 # Database directory
@@ -188,7 +188,7 @@ timeout_precommit_delta = "500ms"
 timeout_commit = "1s"
 
 # Make progress as soon as we have all the precommits (as if TimeoutCommit = 0)
-skip_timeout_commit = false
+skip_timeout_commit = true
 
 # EmptyBlocks mode and possible interval between empty blocks
 create_empty_blocks = true
