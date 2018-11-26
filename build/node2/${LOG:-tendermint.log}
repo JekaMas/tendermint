@@ -1,2 +1,3 @@
-E[26116-11-26|08:42:13.875] Dialing failed                               module=p2p addr=acb4d32d0493b2e4417cd2b4f133689ef4da2235@192.167.10.5:26656 err="duplicate ID<acb4d32d0493b2e4417cd2b4f133689ef4da2235>" attempts=0
-E[26116-11-26|08:42:43.878] Dialing failed                               module=p2p addr=c6b61927cbd75cff8ade61877ab18f25871ed348@192.167.10.4:26656 err="self ID<c6b61927cbd75cff8ade61877ab18f25871ed348>" attempts=0
+E[26116-11-26|08:55:31.000] Dialing failed                               module=p2p addr=250805dac9e2081af23b466d98d794ac6c373fea@192.167.10.2:26656 err="dial tcp 192.167.10.2:26656: i/o timeout" attempts=0
+E[26116-11-26|08:55:31.000] Dialing failed                               module=p2p addr=84e4b1a0e292f9afb29a217c5841f3a23c536740@192.167.10.3:26656 err="dial tcp 192.167.10.3:26656: i/o timeout" attempts=0
+E[26116-11-26|08:55:32.602] Error dialing peer                           module=p2p err="dial tcp 192.167.10.3:26656: connect: connection refused"

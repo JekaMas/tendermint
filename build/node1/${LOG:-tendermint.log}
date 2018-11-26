@@ -1,2 +1,0 @@
-E[26116-11-26|08:42:13.872] Dialing failed                               module=p2p addr=c6b61927cbd75cff8ade61877ab18f25871ed348@192.167.10.4:26656 err="dial tcp 192.167.10.4:26656: i/o timeout" attempts=0
-E[26116-11-26|08:42:42.877] Dialing failed                               module=p2p addr=c8f90a1a0f65d632bb491204c90e9ae01fe54245@192.167.10.3:26656 err="self ID<c8f90a1a0f65d632bb491204c90e9ae01fe54245>" attempts=0

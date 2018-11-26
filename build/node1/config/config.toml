@@ -8,7 +8,7 @@
 proxy_app = "tcp://127.0.0.1:26658"
 
 # A custom human readable name for this node
-moniker = "e43e6b23cd82"
+moniker = "5b5db27a6fe6"
 
 # If this node is many blocks behind the tip of the chain, FastSync
 # allows them to catchup quickly by downloading blocks in parallel
@@ -112,7 +112,7 @@ external_address = ""
 seeds = ""
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "972abae370519020d9eb86b640ac307aa144f2f0@192.167.10.2:26656,c8f90a1a0f65d632bb491204c90e9ae01fe54245@192.167.10.3:26656,c6b61927cbd75cff8ade61877ab18f25871ed348@192.167.10.4:26656,acb4d32d0493b2e4417cd2b4f133689ef4da2235@192.167.10.5:26656"
+persistent_peers = "250805dac9e2081af23b466d98d794ac6c373fea@192.167.10.2:26656,84e4b1a0e292f9afb29a217c5841f3a23c536740@192.167.10.3:26656,dd5ea5a8d9696d125822afe9cc4017661ab6f7ee@192.167.10.4:26656,fb1cc45af6b80f24a6bb895924423c98ff261089@192.167.10.5:26656"
 
 # UPNP port forwarding
 upnp = false

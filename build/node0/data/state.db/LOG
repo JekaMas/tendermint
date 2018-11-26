@@ -1,16 +1,6 @@
 =============== Nov 26, 2018 (UTC) ===============
-08:41:13.261090 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
-08:41:13.362952 db@open opening
-08:41:13.363617 version@stat F·[] S·0B[] Sc·[]
-08:41:13.388506 db@janitor F·2 G·0
-08:41:13.388575 db@open done T·25.573816ms
-=============== Nov 26, 2018 (UTC) ===============
-08:42:11.487376 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
-08:42:11.487649 version@stat F·[] S·0B[] Sc·[]
-08:42:11.487671 db@open opening
-08:42:11.487778 journal@recovery F·1
-08:42:11.488253 journal@recovery recovering @1
-08:42:11.544929 memdb@flush created L0@2 N·45 S·4KiB "abc..y:1,v10":"val..y:9,v35"
-08:42:11.549523 version@stat F·[1] S·4KiB[4KiB] Sc·[0.25]
-08:42:11.662063 db@janitor F·3 G·0
-08:42:11.662496 db@open done T·174.806175ms
+08:55:31.125149 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+08:55:31.208955 db@open opening
+08:55:31.209651 version@stat F·[] S·0B[] Sc·[]
+08:55:31.268074 db@janitor F·2 G·0
+08:55:31.268141 db@open done T·59.001326ms
