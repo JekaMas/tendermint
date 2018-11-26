@@ -1,0 +1,3 @@
+E[26116-11-26|08:42:12.436] Dialing failed                               module=p2p addr=c8f90a1a0f65d632bb491204c90e9ae01fe54245@192.167.10.3:26656 err="dial tcp 192.167.10.3:26656: connect: connection refused" attempts=0
+E[26116-11-26|08:42:13.436] Dialing failed                               module=p2p addr=c6b61927cbd75cff8ade61877ab18f25871ed348@192.167.10.4:26656 err="dial tcp 192.167.10.4:26656: i/o timeout" attempts=0
+E[26116-11-26|08:42:42.437] Dialing failed                               module=p2p addr=972abae370519020d9eb86b640ac307aa144f2f0@192.167.10.2:26656 err="self ID<972abae370519020d9eb86b640ac307aa144f2f0>" attempts=0

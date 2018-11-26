@@ -252,7 +252,7 @@ func DefaultLogLevel() string {
 // DefaultPackageLogLevels returns a default log level setting so all packages
 // log at "error", while the `state` and `main` packages log at "info"
 func DefaultPackageLogLevels() string {
-	return fmt.Sprintf("main:info,state:info,*:%s", DefaultLogLevel())
+	return fmt.Sprintf("main:error,state:error,*:%s", DefaultLogLevel())
 }
 
 //-----------------------------------------------------------------------------
@@ -426,12 +426,12 @@ func DefaultP2PConfig() *P2PConfig {
 		UPNP:                    false,
 		AddrBook:                defaultAddrBookPath,
 		AddrBookStrict:          true,
-		MaxNumInboundPeers:      40,
-		MaxNumOutboundPeers:     10,
+		MaxNumInboundPeers:      4000,
+		MaxNumOutboundPeers:     100,
 		FlushThrottleTimeout:    100 * time.Millisecond,
-		MaxPacketMsgPayloadSize: 1024,    // 1 kB
-		SendRate:                5120000, // 5 mB/s
-		RecvRate:                5120000, // 5 mB/s
+		MaxPacketMsgPayloadSize: 10240,    // 1 kB
+		SendRate:                51200000, // 5 mB/s
+		RecvRate:                51200000, // 5 mB/s
 		PexReactor:              true,
 		SeedMode:                false,
 		AllowDuplicateIP:        true, // so non-breaking yet
@@ -517,13 +517,13 @@ type MempoolConfig struct {
 // DefaultMempoolConfig returns a default configuration for the Tendermint mempool
 func DefaultMempoolConfig() *MempoolConfig {
 	return &MempoolConfig{
-		Recheck:   true,
-		Broadcast: true,
+		Recheck:   false,
+		Broadcast: false,
 		WalPath:   "",
 		// Each signature verification takes .5ms, size reduced until we implement
 		// ABCI Recheck
-		Size:      5000,
-		CacheSize: 10000,
+		Size:      10000,
+		CacheSize: 50000,
 	}
 }
 
