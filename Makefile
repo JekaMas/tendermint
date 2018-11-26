@@ -302,7 +302,6 @@ localnet-stop:
 	docker-compose down
 
 localnet-reinit:
-	rm -Rdf ./build/node*/data
 	rm ./build/node*/config/config.toml
 	cp -f ./bench/config.toml build/node0/config/config.toml
 	cp -f ./bench/config.toml build/node1/config/config.toml
