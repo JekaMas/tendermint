@@ -23,10 +23,6 @@ const (
 var NChunks = 5 * runtime.NumCPU()
 
 func main() {
-	for i := 0; i < NRequests; i++ {
-
-	}
-
 	chunks, chunkSize := getChunks()
 	startTime := time.Now()
 	done := new(uint32)
