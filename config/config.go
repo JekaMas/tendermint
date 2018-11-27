@@ -522,8 +522,8 @@ func DefaultMempoolConfig() *MempoolConfig {
 		WalPath:   "",
 		// Each signature verification takes .5ms, size reduced until we implement
 		// ABCI Recheck
-		Size:      10000,
-		CacheSize: 50000,
+		Size:      100000,
+		CacheSize: 500000,
 	}
 }
 

@@ -3,13 +3,15 @@ package db
 import (
 	"bytes"
 	"fmt"
-	"github.com/syndtr/goleveldb/leveldb/filter"
-	"path/filepath"
-
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+	"os"
+	"path/filepath"
+	"runtime/pprof"
+	"time"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
@@ -25,7 +27,8 @@ func init() {
 var _ DB = (*GoLevelDB)(nil)
 
 type GoLevelDB struct {
-	db *leveldb.DB
+	db     *leveldb.DB
+	closer chan struct{}
 }
 
 func NewGoLevelDB(name string, dir string) (*GoLevelDB, error) {
@@ -46,17 +49,45 @@ func NewGoLevelDBWithOpts(name string, dir string, o *opt.Options) (*GoLevelDB, 
 		WriteBuffer:            cache / 4 * opt.MiB, // Two of these are used internally
 		Filter:                 filter.NewBloomFilter(10),
 
-		BlockSize:                   16,
-		CompactionExpandLimitFactor: 70,
-		CompactionGPOverlapsFactor:  30,
+		//BlockSize:                   16,
+		//CompactionExpandLimitFactor: 70,
+		//CompactionGPOverlapsFactor:  30,
 	})
 
 	if err != nil {
 		return nil, err
 	}
 	database := &GoLevelDB{
-		db: db,
+		db:     db,
+		closer: make(chan struct{}),
 	}
+
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+
+mainLoop:
+		for {
+			select {
+			case <-database.closer:
+				break mainLoop
+			case <-ticker.C:
+				memprofile := fmt.Sprintf("mem_%d.mprof", time.Now().Unix())
+				f, err := os.Create(memprofile)
+				if err != nil {
+					fmt.Println("could not create memory profile: ", err)
+					return
+				}
+
+				if err := pprof.WriteHeapProfile(f); err != nil {
+					fmt.Println("could not write memory profile: ", err)
+				}
+
+				f.Close()
+			}
+		}
+	}()
+
 	return database, nil
 }
 

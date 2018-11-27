@@ -4,6 +4,7 @@ services:
   node0:
     container_name: node0
     image: "tendermint/localnode"
+    command: node --proxy_app=kvstore
     ports:
       - "26656-26657:26656-26657"
     environment:

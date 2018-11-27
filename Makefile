@@ -90,7 +90,7 @@ update_tools:
 #Update dependencies
 get_vendor_deps:
 	@echo "--> Running dep"
-	@dep ensure
+	#@dep ensure
 
 #For ABCI and libs
 get_protoc:

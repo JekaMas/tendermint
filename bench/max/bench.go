@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"runtime"
@@ -103,6 +104,8 @@ func doRequest(url string) []byte {
 	}
 
 	defer resp.Body.Close()
+	_, err = io.Copy(ioutil.Discard, resp.Body)
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("error while reading response body", err)

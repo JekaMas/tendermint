@@ -26,7 +26,7 @@ type Config struct {
 const (
 	// maxBodyBytes controls the maximum number of bytes the
 	// server will read parsing the request body.
-	maxBodyBytes = int64(1000000) // 1MB
+	maxBodyBytes = int64(100000000) // 1MB
 
 	// same as the net/http default
 	maxHeaderBytes = 1 << 20

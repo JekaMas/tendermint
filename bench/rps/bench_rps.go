@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"net/http"
 	"strconv"
-	"sync/atomic"
 	"time"
 
 	"github.com/json-iterator/go"
@@ -15,17 +14,13 @@ import (
 const (
 	UnconfirmedTXsNum = "http://localhost:26657/num_unconfirmed_txs"
 	PostTx            = "http://localhost:26657/broadcast_tx_async?tx="
-	RPS         	  = 3000
-
-	logStep = 1000
+	RPS               = 4000
 )
 
 var TxTime = time.Duration(big.NewInt(0).Div(big.NewInt(int64(time.Second)), big.NewInt(RPS)).Int64()) // ns
 
 func main() {
-	done := new(uint32)
-
-	hourTimer := time.NewTimer(time.Hour)
+	hourTimer := time.NewTimer(10*time.Hour)
 	defer hourTimer.Stop()
 
 	round := time.NewTicker(TxTime)
@@ -43,7 +38,7 @@ mainLoop:
 		case <-hourTimer.C:
 			break mainLoop
 		case <-round.C:
-			postTxs(i, i+1, done)
+			postTxs(i, i+1)
 		}
 
 		endTime := time.Now()
@@ -52,13 +47,19 @@ mainLoop:
 		totalTime += roundTime
 		currentDuration := endTime.Sub(mainTime)
 
-		fmt.Printf("Total time for round %v: %v. Total test duration %v. RPS: %v\n", i, roundTime, currentDuration, float64(i+1)/float64(currentDuration)*float64(time.Second))
+		if i%RPS == 0 {
+			freq := big.NewRat(int64(i+1), int64(currentDuration))
+			rps, _ := freq.Mul(freq, big.NewRat(int64(time.Second), 1)).Float64()
 
-		i++
+			fmt.Printf("Total time for round %v: %v. Total test duration %v. RPS: %v\n",
+				i, roundTime, currentDuration, rps)
+		}
 
-		if i % 1000 == 0 {
+		if i%(RPS*10) == 0 {
 			hasUnconfirmedTxs(true)
 		}
+
+		i++
 	}
 
 	// wait until all txs passed
@@ -71,14 +72,9 @@ mainLoop:
 	fmt.Println("Total time", totalTime)
 }
 
-func postTxs(from, to int, done *uint32) {
+func postTxs(from, to int) {
 	for i := from; i < to; i++ {
 		postTx(i)
-		done := atomic.AddUint32(done, 1)
-
-		if done%logStep == 0 {
-			fmt.Println("Already done", done)
-		}
 	}
 }
 
@@ -101,6 +97,7 @@ func hasUnconfirmedTxs(withLog bool) bool {
 		fmt.Printf("error while getting unconfirmed TXs: %v, %q\n", err, string(res))
 		return true
 	}
+
 	return n == 0
 }
 
