@@ -1,0 +1,43 @@
+{
+  "genesis_time": "2018-11-27T15:00:08.748845827Z",
+  "chain_id": "chain-mc7vmT",
+  "validators": [
+    {
+      "address": "833F2E6E6C20D476DEAA26802C8B2CCE24445FFC",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "X5ve4ZNERQOeuE1uuGxSbKGueBY4RkpcangXix6pw84="
+      },
+      "power": "1",
+      "name": "node0"
+    },
+    {
+      "address": "056DE795519C5CEC7E6FEBAF5B8C20C4F32163BB",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "buR/u2TpVG5qGDZB+kWI1N5K7xA4wzQ7hHFdOAypVzg="
+      },
+      "power": "1",
+      "name": "node1"
+    },
+    {
+      "address": "C6366AD49A10A2A38065B8AE3C6B5EC2A3D923E9",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "A9mWffhoysm0tpPPQEzRAW/xmk5NktROZRX0eZ5ZzUs="
+      },
+      "power": "1",
+      "name": "node2"
+    },
+    {
+      "address": "F04B2CA9EBACF9099C43FA71A094BA8991B2A9EE",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "OzEiaEPGNhQMys8PUJmp71tU1sSrikysL9aveP1Z1QE="
+      },
+      "power": "1",
+      "name": "node3"
+    }
+  ],
+  "app_hash": ""
+}
