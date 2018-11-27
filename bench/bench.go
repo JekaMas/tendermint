@@ -2,19 +2,20 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"runtime"
 	"strconv"
 	"sync/atomic"
 	"time"
 
 	"github.com/json-iterator/go"
-	"github.com/valyala/fasthttp"
 )
 
 const (
 	UnconfirmedTXsNum = "http://localhost:26657/num_unconfirmed_txs"
 	PostTx            = "http://localhost:26657/broadcast_tx_async?tx="
-	NRequests         = 20000
+	NRequests         = 50000
 
 	logStep = 1000
 )
@@ -76,36 +77,38 @@ func postTxs(from, to int, done *uint32) {
 }
 
 func postTx(n int) {
-	doRequest(PostTx+"\""+strconv.Itoa(time.Now().Nanosecond())+strconv.Itoa(n)+"\"", false)
+	doRequest(PostTx + "\"" + strconv.Itoa(time.Now().Nanosecond()) + strconv.Itoa(n) + "\"")
 }
 
 func hasUnconfirmedTxs() bool {
-	res := doRequest(UnconfirmedTXsNum, true)
+	res := doRequest(UnconfirmedTXsNum)
 
 	resp := new(RPCResponse)
 	resp.Decode(res)
 
 	n, err := strconv.Atoi(resp.Res.N)
 	if err != nil {
-		fmt.Println("error while getting unconfirmed TXs", err)
+		fmt.Printf("error while getting unconfirmed TXs: %v, %q\n", err, string(res))
 		return true
 	}
 	return n == 0
 }
 
-func doRequest(url string, withBody bool) []byte {
-	req := fasthttp.AcquireRequest()
-	req.SetRequestURI(url)
-
-	resp := fasthttp.AcquireResponse()
-	client := &fasthttp.Client{}
-	client.Do(req, resp)
-
-	if !withBody {
+func doRequest(url string) []byte {
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println("error while http.get", err)
 		return nil
 	}
 
-	return resp.Body()
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("error while reading response body", err)
+		return nil
+	}
+
+	return body
 }
 
 type RPCResponse struct {
