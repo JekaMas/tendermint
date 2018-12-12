@@ -73,24 +73,13 @@ func (db *DB) sampleSeek(ikey internalKey) {
 }
 
 func (db *DB) mpoolPut(mem *memdb.DB) {
-	if !db.isClosed() {
-		select {
-		case db.memPool <- mem:
-		default:
-		}
-	}
 }
 
 func (db *DB) mpoolGet(n int) *memDB {
 	var mdb *memdb.DB
-	select {
-	case mdb = <-db.memPool:
-	default:
-	}
-	if mdb == nil || mdb.Capacity() < n {
-		fmt.Println("*************", mdb == nil, db.s.o.GetWriteBuffer(), n)
-		mdb = memdb.New(db.s.icmp, maxInt(db.s.o.GetWriteBuffer(), n))
-	}
+	fmt.Println("*************", mdb == nil, db.s.o.GetWriteBuffer(), n)
+	mdb = memdb.New(db.s.icmp, maxInt(db.s.o.GetWriteBuffer(), n))
+	
 	return &memDB{
 		db: db,
 		DB: mdb,

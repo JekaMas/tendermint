@@ -10,6 +10,7 @@ import (
 	"errors"
 	"sync"
 	"time"
+	"fmt"
 
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
@@ -97,6 +98,7 @@ func (tr *Transaction) flush() error {
 			tr.mem.Reset()
 		} else {
 			tr.mem.decref()
+			fmt.Println("************* Transaction.flush")
 			tr.mem = tr.db.mpoolGet(0)
 			tr.mem.incref()
 		}
@@ -110,6 +112,7 @@ func (tr *Transaction) flush() error {
 
 func (tr *Transaction) put(kt keyType, key, value []byte) error {
 	tr.ikScratch = makeInternalKey(tr.ikScratch, key, tr.seq+1, kt)
+	fmt.Println("=========== Transaction.ikScratch", len(tr.ikScratch), cap(tr.ikScratch))
 	if tr.mem.Free() < len(tr.ikScratch)+len(value) {
 		if err := tr.flush(); err != nil {
 			return err
@@ -314,6 +317,7 @@ func (db *DB) OpenTransaction() (*Transaction, error) {
 		return nil, err
 	}
 
+	fmt.Println("************* DB.OpenTransaction")
 	tr := &Transaction{
 		db:  db,
 		seq: db.seq,

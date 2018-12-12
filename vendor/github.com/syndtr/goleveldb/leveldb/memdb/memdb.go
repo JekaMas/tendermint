@@ -10,6 +10,7 @@ package memdb
 import (
 	"math/rand"
 	"sync"
+	"fmt"
 
 	"github.com/syndtr/goleveldb/leveldb/comparer"
 	"github.com/syndtr/goleveldb/leveldb/errors"
@@ -277,6 +278,8 @@ func (p *DB) findLast() int {
 func (p *DB) Put(key []byte, value []byte) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
+	fmt.Println("=========== DB.Put", len(p.kvData), cap(p.kvData), len(p.nodeData), cap(p.nodeData))
 
 	if node, exact := p.findGE(key, true); exact {
 		kvOffset := len(p.kvData)
